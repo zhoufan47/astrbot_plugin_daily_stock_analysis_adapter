@@ -1,0 +1,32 @@
+{
+  "target_groups": {
+    "description": "需要推送报告的群组",
+    "type": "list",
+    "hint": "填写需要推送报告的群组唯一标识符，如: 你的平台名称(自己起的):GroupMessage:1350989414, napcat:FriendMessage:123456, telegram:FriendMessage:123456",
+    "default": ["这里填你的平台名称:GroupMessage:这里填写你的群号"]
+  },
+  "webhook_path": {
+    "description": "Webhook的URL",
+    "type": "string",
+    "hint": "只需要https://me.top/yyyy中的yyyy部分，请自行定义",
+    "default": "/stock-analysis"
+  },
+  "webhook_port": {
+    "description": "Webhook端口号",
+    "type": "int",
+    "hint": "请填写监听的端口号",
+    "default": "8080"
+  },
+  "secret_key": {
+    "description": "Webhook token",
+    "type": "string",
+    "hint": "请自定义，保证密钥的安全性",
+    "default": "12345678"
+  },
+    "enable_signature_verification": {
+    "description": "是否验证签名",
+    "type": "bool",
+    "hint": "是否对请求进行签名验证",
+    "default": false
+  }
+}
