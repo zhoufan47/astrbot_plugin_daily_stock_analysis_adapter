@@ -115,7 +115,7 @@ class DailyStockAnalysisAdapter(Star):
             if not timestamp:
                 logger.warning("每日股票分析适配器:请求缺少时间戳")
                 return False
-            if self.secret_key is None:
+            if not self.secret_key:
                 logger.warning("每日股票分析适配器:服务端缺少密钥")
                 return False
             payload = json.dumps(data, sort_keys=True)
