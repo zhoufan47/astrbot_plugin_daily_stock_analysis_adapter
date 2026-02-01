@@ -198,6 +198,9 @@ class DailyStockAnalysisAdapter(Star):
         try:
             if self.runner:
                 await self.runner.shutdown()
+                await self.runner.cleanup()
+            if self.site:
+                await self.site.stop()
             if self.web_app:
                 await self.web_app.shutdown()
                 await self.web_app.cleanup()
