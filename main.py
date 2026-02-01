@@ -17,21 +17,15 @@ from typing import Dict, List, Optional
 class DailyStockAnalysisAdapter(Star):
     def __init__(self, context: Context, config: dict):
         super().__init__(context)
-        self.astrBotConfig = config
-        self.config = {
-            'webhook_port': 8080,
-            'webhook_path': '/webhook/daily_stock_analysis_adapter',
-            'secret_key': '',
-            'enable_signature_verification': True,
-            'target_groups': []
-        }
-        self.webhook_port = config.get("webhook_port")
+        self.webhook_port = config.get("webhook_port", 8080)
         self.webhook_path = config.get("webhook_path")
         self.secret_key = config.get("secret_key")
         self.enable_signature_verification = config.get("enable_signature_verification", False)
         self.target_groups = config.get("target_groups", [])  # List[str]
         self.web_app = None
         self.today_stock_report = None
+        self.runner = None
+        self.site = None
 
         
     async def initialize(self):
@@ -48,22 +42,6 @@ class DailyStockAnalysisAdapter(Star):
             logger.error(f"插件初始化失败: {e}")
             raise
 
-    async def load_config(self):
-        """加载插件配置"""
-        # 从Astrbot配置系统加载配置
-        plugin_config = self.context.get_config().get('daily_stock_analysis_adapter', {})
-        
-        # 更新配置
-        self.config.update(plugin_config)
-        
-        # 确保必要配置存在
-        if not self.secret_key:
-            logger.warning("未配置secret_key，签名验证将被禁用")
-            self.enable_signature_verification = False
-            
-        if not self.target_groups:
-            logger.warning("未配置目标群组或用户")
-
     async def start_http_server(self):
         """启动HTTP服务"""
         self.web_app = web.Application()
@@ -73,11 +51,11 @@ class DailyStockAnalysisAdapter(Star):
         self.web_app.router.add_get(self.webhook_path, self.health_check)
         
         # 启动服务
-        runner = web.AppRunner(self.web_app)
-        await runner.setup()
+        self.runner = web.AppRunner(self.web_app)
+        await self.runner.setup()
         
-        site = web.TCPSite(runner, '0.0.0.0', self.webhook_port)
-        await site.start()
+        self.site = web.TCPSite(self.runner, '0.0.0.0', self.webhook_port)
+        await self.site.start()
         
         logger.info(f"HTTP服务已启动在端口 {self.webhook_port}")
 
@@ -130,7 +108,7 @@ class DailyStockAnalysisAdapter(Star):
                 return False
             
             # 准备签名数据
-            timestamp = headers.get('X-Timestamp') or str(int(time.time()))
+            timestamp = headers.get('X-Timestamp')
             payload = json.dumps(data, sort_keys=True)
             sign_data = f"{timestamp}.{payload}".encode('utf-8')
             
@@ -194,7 +172,7 @@ class DailyStockAnalysisAdapter(Star):
             for group_id in self.target_groups:
                 logger.info(f"股票分析：向群组 {group_id} 发送图片")
                 await self.context.send_message(group_id, message_chain)
-                await asyncio.sleep(2)  # 防风控延迟
+                await asyncio.sleep(1)  # 防风控延迟
                 
         except Exception as e:
             logger.error(f"发送消息时出错: {e}")
@@ -211,16 +189,6 @@ class DailyStockAnalysisAdapter(Star):
         except Exception as e:
             logger.error(f"发送消息到群组 {group_id} 失败: {e}")
 
-    async def send_to_user(self, user_id: str, message_chain: List):
-        """发送消息到用户"""
-        try:
-            # 创建用户会话
-            session = self.context.create_private_session(user_id)
-            # 发送消息
-            await self.context.send_message(session, message_chain)
-            logger.info(f"已发送消息到用户: {user_id}")
-        except Exception as e:
-            logger.error(f"发送消息到用户 {user_id} 失败: {e}")
 
     @filter.command("今天股票")
     async def manual_report(self, event: AstrMessageEvent):
@@ -235,6 +203,8 @@ class DailyStockAnalysisAdapter(Star):
     async def terminate(self):
         """插件销毁时清理资源"""
         try:
+            if self.runner:
+                await self.runner.shutdown()
             if self.web_app:
                 await self.web_app.shutdown()
                 await self.web_app.cleanup()
