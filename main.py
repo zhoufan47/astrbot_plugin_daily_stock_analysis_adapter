@@ -82,7 +82,7 @@ class DailyStockAnalysisAdapter(Star):
             # 验证签名
             if self.enable_signature_verification:
                 if not await self.verify_signature(data, headers):
-                    logger.warning("签名验证失败")
+                    logger.warning("每日股票分析适配器:签名验证失败")
                     return web.json_response(
                         {'error': 'Signature verification failed'}, 
                         status=401
@@ -96,7 +96,7 @@ class DailyStockAnalysisAdapter(Star):
         except Exception as e:
             logger.error(f"每日股票分析适配器:处理Webhook请求时出错: {e}")
             return web.json_response(
-                {'error': str(e)}, 
+                {'error': "服务发生异常"},
                 status=500
             )
 
