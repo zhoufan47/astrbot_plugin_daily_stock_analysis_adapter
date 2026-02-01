@@ -26,7 +26,7 @@ class DailyStockAnalysisAdapter(Star):
         self.runner = None
         self.site = None
         if not self.enable_signature_verification:
-            logger.info(f"每日股票分析适配器:警告！当前未启用签名验证，请自行服务仅可内部网络访问")
+            logger.warning(f"每日股票分析适配器:警告！当前未启用签名验证，请自行服务仅可内部网络访问")
         if self.enable_signature_verification and self.secret_key is None:
             raise ValueError("每日股票分析适配器:密钥未配置！")
 
