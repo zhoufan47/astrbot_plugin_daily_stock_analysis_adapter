@@ -181,6 +181,8 @@ class DailyStockAnalysisAdapter(Star):
     @filter.command("今天股票")
     async def manual_report(self, event: AstrMessageEvent):
         try:
+            if not self.today_stock_report:
+                yield event.plain_result("每日股票分析适配器:没有今天股票分析")
             # 生成HTML图片
             logger.info("每日股票分析适配器:股票分析：手动报告生成成功")
             yield event.image_result(self.today_stock_report)
