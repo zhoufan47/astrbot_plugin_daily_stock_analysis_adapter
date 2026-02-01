@@ -10,8 +10,7 @@ import hashlib
 import hmac
 import json
 import time
-import os
-from typing import Dict, List, Optional
+
 
 @register("astrbot_plugin_daily_stock_analysis_adapter", "棒棒糖", "DailyStockAnalysis适配器插件", "1.0.0")
 class DailyStockAnalysisAdapter(Star):
@@ -26,7 +25,8 @@ class DailyStockAnalysisAdapter(Star):
         self.today_stock_report = None
         self.runner = None
         self.site = None
-
+        if not self.enable_signature_verification:
+            logger.info(f"每日股票分析适配器:警告！当前未启用签名验证，请自行服务仅可内部网络访问")
         if self.enable_signature_verification and self.secret_key is None:
             raise ValueError("每日股票分析适配器:密钥未配置！")
 
