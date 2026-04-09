@@ -28,5 +28,36 @@
     "type": "bool",
     "hint": "是否对请求进行签名验证",
     "default": false
+  },
+  "api_base_url": {
+    "description": "Daily Stock Analysis API服务地址",
+    "type": "string",
+    "hint": "API服务的基础URL，如 http://localhost:8000。留空表示不启用API功能",
+    "default": ""
+  },
+  "api_auth_password": {
+    "description": "API认证密码",
+    "type": "string",
+    "hint": "当Daily Stock Analysis API启用了ADMIN_AUTH_ENABLED认证时，需要填写此密码。为空表示不进行认证（适用于认证未启用的情况）",
+    "default": ""
+  },
+  "enable_batch_analysis": {
+    "description": "是否启用批量股票分析",
+    "type": "bool",
+    "hint": "启用后支持同时分析多只股票，使用逗号分隔股票代码",
+    "default": false
+  },
+  "default_report_type": {
+    "description": "默认报告类型",
+    "type": "string",
+    "hint": "分析报告的默认类型",
+    "default": "detailed",
+    "options": ["simple", "detailed", "full", "brief"]
+  },
+  "report_extra_content": {
+    "description": "报告额外内容",
+    "type": "text",
+    "hint": "将在报告渲染为图片之前，拼接至报告末尾的额外内容（支持Markdown格式）",
+    "default": ""
   }
 }
