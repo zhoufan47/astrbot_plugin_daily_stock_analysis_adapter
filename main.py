@@ -10,6 +10,7 @@ import hashlib
 import hmac
 import json
 import time
+import markdown
 
 
 @register("astrbot_plugin_daily_stock_analysis_adapter", "棒棒糖", "DailyStockAnalysis适配器插件", "1.0.0")
@@ -138,14 +139,13 @@ class DailyStockAnalysisAdapter(Star):
     async def process_stock_analysis(self, data: dict):
         """处理股票分析数据"""
         try:
-            # 提取HTML内容
-            html_content = data.get('content', '')
-            if not html_content:
-                logger.warning("每日股票分析适配器:缺少content字段")
+            #提取markdown内容
+            content = data.get('content') or data.get('message') or data.get('text', '')
+            if not content:
+                logger.warning("每日股票分析适配器:缺少content/message/text字段")
                 return
-            
-            # 渲染HTML为图片
-            rendered_image_url = await self.render_html_to_image(html_content)
+            #渲染图片
+            rendered_image_url = await self.render_html_to_image(content)
             self.today_stock_report = rendered_image_url
             # 发送给目标群组和用户
             await self.send_to_targets(rendered_image_url)
@@ -154,17 +154,18 @@ class DailyStockAnalysisAdapter(Star):
             logger.error(f"每日股票分析适配器:处理股票分析数据时出错: {e}")
             raise
 
-    async def render_html_to_image(self, html_content: str) -> str:
-        """将HTML渲染为图片"""
+    async def render_html_to_image(self, markdown_content: str) -> str:
+        """将Markdown渲染为图片"""
         try:
-            # 使用Astrbot的HTML渲染器
-            # 这里假设Astrbot提供了HTML渲染功能
-            options = {"quality": 95, "device_scale_factor_level": "ultra", "viewport_width": 800}
-            rendered_image_url = await self.html_render(html_content,{}, options=options)
+            md = markdown.Markdown(extensions=['tables', 'fenced_code', 'nl2br'])
+            html_content = md.convert(markdown_content)
+            
+            options = {"quality": 95, "device_scale_factor_level": "ultra", "viewport_width": 1200}
+            rendered_image_url = await self.html_render(html_content, {}, options=options)
             return rendered_image_url
 
         except Exception as e:
-            logger.error(f"每日股票分析适配器:HTML渲染失败: {e}")
+            logger.error(f"每日股票分析适配器:Markdown渲染失败: {e}")
             raise
 
     async def send_to_targets(self, image_data: str):
